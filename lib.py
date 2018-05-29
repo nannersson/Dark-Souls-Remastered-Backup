@@ -16,13 +16,16 @@ class Settings:
         self.saveFileName = 'DRAKS0005.sl2'
         self.backupFolder = self.savePath + "backup\\"
         self.folder = None
-
-        for x in os.listdir(self.savePath):
-
-            if len(x) == 8 and os.path.isdir(self.savePath + x + "\\"):
-
-                self.folder = x
-                print(x + " chosen")
+        
+        #Actually look for the save file
+        for root, dirs, files in os.walk(self.savePath):
+            for file in files:
+                if file == 'DRAKS0005.sl2':
+                    self.folder = root.split("\\")[-1]
+        
+        if self.folder == None:
+            print("Failed to find dark souls save file. Please start up the game before running the program.")
+            os._exit(1)
 
         if not os.path.isdir(self.backupFolder):
             os.mkdir(self.backupFolder)
@@ -84,10 +87,6 @@ class mainWindow:
         self.settings = Settings(self)
         self.data = self.settings.data
         self.master.title("DS Remastered Backup")
-
-        if self.data['folder'] == None:
-
-            self.pickFolder()
 
         self.info = ttk.Label(self.master, text="Current savefile: {}".format('N/A' if self.data['last'] == None else self.data['last']))
         self.info.grid(row=0, columnspan=2, padx=10, pady=10, sticky=tk.W)

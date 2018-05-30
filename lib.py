@@ -12,38 +12,53 @@ class Settings:
     def __init__(self, parent):
 
         self.file = 'settings.json'
-        self.savePath = os.path.expanduser("~\\Documents\\NBGI\\DARK SOULS REMASTERED\\")
         self.saveFileName = 'DRAKS0005.sl2'
-        self.backupFolder = self.savePath + "backup\\"
-        self.folder = None
-        
-        #Actually look for the save file
-        for root, dirs, files in os.walk(self.savePath):
-            for file in files:
-                if file == 'DRAKS0005.sl2':
-                    self.folder = root.split("\\")[-1]
-        
-        if self.folder == None:
-            print("Failed to find dark souls save file. Please start up the game before running the program.")
-            os._exit(1)
-
-        if not os.path.isdir(self.backupFolder):
-            os.mkdir(self.backupFolder)
-
-        self.data = {
-            'folder': self.folder,
-            'backups': os.listdir(self.backupFolder),
-            'last': None
-        }
-
         self.fullPath = None
-
+        self.data = {
+                'path': os.path.expanduser("~\\Documents\\NBGI\\DARK SOULS REMASTERED\\"),
+                'folder': None,
+                'last': None
+            }
+        
+        
+        
         if os.path.isfile(self.file):
             self.load()
-
+        
         else:
+        
+            #Actually look for the save file
+            for root, dirs, files in os.walk(self.data['path']):
+                for file in files:
+                    if file == 'DRAKS0005.sl2':
+                        self.data['folder'] = root.split("\\")[-1]
+                        
+            
+            #Didn't find it.. Manual mode
+            while self.data['folder'] == None:
+                print("Failed to find dark souls save file. Please browse for the save file's folder")
+                a = filedialog.askdirectory(parent=parent.master,initialdir=self.data['path'],title='Locate your savedata')
+                if a == '': os._exit(1)
+                
+                for root, dirs, files in os.walk(a.replace('/', '\\')):
+                    for file in files:
+                        if file == 'DRAKS0005.sl2':
+                            self.data['path'] = "\\".join(root.split("\\")[:-1])+"\\"
+                            self.data['folder'] = root.split("\\")[-1]
+
+            
+
+            
+
+            
+
+            
             self.save()
             self.load()
+        
+        self.backupFolder = self.data['path'] + "backup\\"
+        if not os.path.isdir(self.backupFolder):
+                os.mkdir(self.backupFolder)
 
     def load(self):
 
@@ -65,7 +80,7 @@ class Settings:
 
         if self.fullPath == None and self.data['folder'] != None:
 
-            self.fullPath = self.savePath + self.data['folder'] + "\\" + self.saveFileName
+            self.fullPath = self.data['path'] + self.data['folder'] + "\\" + self.saveFileName
 
     def save(self):
 
@@ -114,7 +129,7 @@ class mainWindow:
 
     def backup(self):
 
-        res = filedialog.asksaveasfilename(filetypes=[('Backup file', '.bak')], initialdir=self.settings.savePath + "backup\\", defaultextension=".bak", initialfile="save{}".format(len(os.listdir(self.settings.backupFolder))+1))
+        res = filedialog.asksaveasfilename(filetypes=[('Backup file', '.bak')], initialdir=self.settings.data['path'] + "backup\\", defaultextension=".bak", initialfile="save{}".format(len(os.listdir(self.settings.backupFolder))+1))
 
         if res != "" and res != None:
 
@@ -150,7 +165,7 @@ class mainWindow:
 
         else:
 
-            res = filedialog.askopenfilename(filetypes=[('Backup file', '.bak')], initialdir=self.settings.savePath + "backup\\")
+            res = filedialog.askopenfilename(filetypes=[('Backup file', '.bak')], initialdir=self.settings.data['path'] + "backup\\")
 
             if res != None and res != "":
 
